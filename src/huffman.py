@@ -67,21 +67,27 @@ def encoding(x: str) -> Tree:
 
     while len(heap) > 1:
         # FIXME: get the first two trees from the heap,
-        # merge them into one new Node with a count that
-        # is the sum of the two trees, and with the two
-        # trees as subtrees. Push that back onto the heap.
+            # merge them into one new Node with a count that
+            # is the sum of the two trees, and with the two
+            # trees as subtrees. Push that back onto the heap.
         # Remember that heap.pop() and heap.append() are
         # list operations, but you need to use the hq.heappop()
         # or hq.heappush() functions.
-        ...
+        left_leaf = hq.heappop(heap)                #take the first node/tree/leaf thingy from heap
+        right_leaf = hq.heappop(heap)               # take the second node/tree/leaf thingy from heap and pop() making sure the while loop ends 
+        sum = (left_leaf.count + right_leaf.count)  # get the sum of the new node 
+        new_node=Node(sum,left_leaf,right_leaf)     # construct a new node 
+        hq.heappush(heap, new_node)                 # be recursive 
+    return heap.pop()                               # pop() the new encoded tree 
+                                                    # is this the right format? CHECK HERE BJARKE!! 
 
-    return heap.pop()
+
 
 
 def build_encoding_table(tree: Tree,
-                         bits: tuple[bits, ...] = (),
-                         res: Optional[dict[letters, bits]] = None,
-                         ) -> dict[letters, bits]:
+                        bits = None,
+                        res: Optional[dict[letters, bits]] = None,
+                        ) -> dict[letters, bits]:
     """Traverse the tree to get the mapping for letters."""
     # FIXME: Implement the mapping.
     # The bits argument is intended as an accumulator of bits
@@ -94,10 +100,18 @@ def build_encoding_table(tree: Tree,
     # large trees in an application like this.
     res = res if res is not None else {}
     if isinstance(tree, Leaf):
-        ...
+        bit_encoding = ''.join(bits)
+        res[tree.letter] = bit_encoding
+        return res
     else:
-        ...
+        bits.append('0')
+        build_encoding_table(tree.left,bits,res)
+        bits.pop()
+        bits.append('1')
+        build_encoding_table(tree.right,bits,res)
+        bits.pop()
     return res
+
 
 
 class BitIterator:
@@ -151,7 +165,14 @@ def decode(x: bits, enc: Encoding) -> str:
             # then you move the node to the left or right child
             # based on the bit.
             ...
-
+            for bit in bits:
+                if bit == '0':
+                    node = node.left
+                if bit == '1':
+                    node = node.right
+                if node.letter is not None:
+                    decoding.append(node.letter)
+                    node = enc.tree
     except StopIteration:
         # When we asked for a bit that wasn't there, we end
         # up here. We need to wrap up. We should only ever
